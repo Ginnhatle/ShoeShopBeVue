@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(rollbackOn = RuntimeException.class)
@@ -352,6 +353,7 @@ public class ProductServiceImpl implements ProductService {
         productResponse.setAttributeDataList(product.getAttributeData());
         productResponse.setImageThumbnail(product.getImageThumbnail());
         productResponse.setCreatedDate(product.getCreatedDate());
+        productResponse.setImageList(product.getProductImageList().stream().map(ProductImage::getUrl).collect(Collectors.toList()));
         return productResponse;
     }
 

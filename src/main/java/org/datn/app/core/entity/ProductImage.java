@@ -15,6 +15,7 @@ public class ProductImage implements Serializable {
     @Column(name = "id")
     private Long id;
     private String url;
-    @ManyToOne(targetEntity = Product.class, cascade = CascadeType.ALL)
+
+    @ManyToOne(targetEntity = Product.class, cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     private Product product;
 }
