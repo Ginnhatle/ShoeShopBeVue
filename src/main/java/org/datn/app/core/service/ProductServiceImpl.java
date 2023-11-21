@@ -42,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
     private final SizeRepo sizeRepo;
     private final ColorRepo colorRepo;
     private final SocketIOServer socketIOServer;
+    private final ProductImageRepo productImageRepo;
 
     @Override
     public Product doInsert(Product product) {
@@ -261,6 +262,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseEntity<?> addImage(MultipartFile file, HttpServletRequest request) throws IOException {
+        String file_name = "C:\\Users\\Admin\\Desktop\\project";
         Long id = Long.parseLong(request.getParameter("id"));
         Product product = productRepo.findById(id).orElseThrow(
                 () -> new RuntimeException("Sản phẩm không tồn tại")
@@ -270,7 +272,8 @@ public class ProductServiceImpl implements ProductService {
         Path filePath = null;
         if(osName.toLowerCase().startsWith("windows")){
             // windows
-             filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
+            filePath = Paths.get(file_name, file.getOriginalFilename());
+             //filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
         }else{
             // linux
              filePath = Paths.get("/var/www/html/image/product", file.getOriginalFilename());
@@ -367,5 +370,39 @@ public class ProductServiceImpl implements ProductService {
             return builder.like(root.get("name"), "%" + name + "%");
         });
         return productList;
+    }
+
+    @Override
+    public void addMultiImage(MultipartFile[] files, HttpServletRequest request) throws IOException {
+        try {
+            Long id = Long.parseLong(request.getParameter("id"));
+            if (files.length == 0) {
+                throw new RuntimeException("Không có file nào được chọn");
+            }
+            if (files.length > 5) {
+                throw new RuntimeException("Chỉ được chọn tối đa 5 file");
+            }
+            for (MultipartFile file : files) {
+                // get OS name
+                String osName = System.getProperty("os.name");
+                Path filePath;
+                if(osName.toLowerCase().startsWith("windows")){
+                    filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
+                }else{
+                    filePath = Paths.get("/var/www/html/image/product", file.getOriginalFilename());
+                }
+                //Path filePath = Paths.get("C:\\Users\\Admin\\Desktop\\code\\datn_shoe_shop\\src\\server\\html\\image\\product", file.getOriginalFilename());
+                ProductImage productImage = new ProductImage();
+                productImage.setUrl(file.getOriginalFilename());
+                productImage.setProduct(productRepo.findById(id).orElseThrow(
+                    () -> new RuntimeException("Sản phẩm không tồn tại")
+                ));
+                productImageRepo.save(productImage);
+                Files.write(filePath, file.getBytes());
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }
