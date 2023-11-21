@@ -2,10 +2,7 @@ package org.datn.app.core.entity.extend;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.datn.app.core.entity.Attribute;
-import org.datn.app.core.entity.AttributeData;
-import org.datn.app.core.entity.Product;
-import org.datn.app.core.entity.ProductDetail;
+import org.datn.app.core.entity.*;
 
 import java.util.List;
 
@@ -14,5 +11,6 @@ import java.util.List;
 public class ProductResponse extends Product {
     private List<Attribute> attributeList;
     private List<ProductDetail> productDetailList;
+    private List<String> imageList;
     private List<AttributeData> attributeDataList;
 }

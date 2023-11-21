@@ -39,4 +39,7 @@ public class ProductDetail implements Serializable {
     @OneToMany(mappedBy = "productDetail",targetEntity = OrderDetail.class)
     @JsonIgnore
     private List<OrderDetail> orderDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product",targetEntity = ProductImage.class)
+    private List<ProductImage> productImageList = new ArrayList<>();
 }
