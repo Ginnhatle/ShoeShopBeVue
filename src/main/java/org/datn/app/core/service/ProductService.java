@@ -31,4 +31,6 @@ public interface ProductService extends ServiceCore<Product, Long> {
     List<Product> findTop10ByOrderByIdDesc();
 
     List<Product> findByName(String name);
+
+    void addMultiImage(MultipartFile[] files, HttpServletRequest request) throws IOException;
 }
