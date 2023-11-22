@@ -267,7 +267,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseEntity<?> addImage(MultipartFile file, HttpServletRequest request) throws IOException {
-        String file_name = "C:\\Users\\Admin\\Desktop\\project";
         Long id = Long.parseLong(request.getParameter("id"));
         Product product = productRepo.findById(id).orElseThrow(
             () -> new RuntimeException("Sản phẩm không tồn tại")
@@ -277,8 +276,7 @@ public class ProductServiceImpl implements ProductService {
         Path filePath = null;
         if (osName.toLowerCase().startsWith("windows")) {
             // windows
-            filePath = Paths.get(file_name, file.getOriginalFilename());
-            //filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
+            filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
         } else {
             // linux
             filePath = Paths.get("/var/www/html/image/product", file.getOriginalFilename());
