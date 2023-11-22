@@ -23,7 +23,7 @@ public class OrderDetail implements Serializable {
     @JsonIgnore
     private Order order;
 
-    @ManyToOne( targetEntity = ProductDetail.class)
+    @ManyToOne( targetEntity = ProductDetail.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "product_detail_id")
     private ProductDetail productDetail;
 }

@@ -45,15 +45,15 @@ public class Product implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdDate;
 
-    @ManyToOne(targetEntity = Category.class)
+    @ManyToOne(targetEntity = Category.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne(targetEntity = Brand.class)
+    @ManyToOne(targetEntity = Brand.class, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
-    @OneToMany(mappedBy = "product", targetEntity = ProductDetail.class, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", targetEntity = ProductDetail.class, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JsonIgnore
     private List<ProductDetail> productDetails = new ArrayList<>();
 
