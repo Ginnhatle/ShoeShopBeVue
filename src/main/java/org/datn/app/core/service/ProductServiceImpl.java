@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -44,6 +46,8 @@ public class ProductServiceImpl implements ProductService {
     private final ColorRepo colorRepo;
     private final SocketIOServer socketIOServer;
     private final ProductImageRepo productImageRepo;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public Product doInsert(Product product) {
@@ -99,30 +103,30 @@ public class ProductServiceImpl implements ProductService {
     public ResponseEntity<?> addProduct(ProductDTO productDTO) {
         // Lấy thông tin category và brand từ ID
         Category category = categoryRepo.findById(productDTO.getCategoryId()).orElseThrow(
-                () -> new RuntimeException("Danh mục không tồn tại")
+            () -> new RuntimeException("Danh mục không tồn tại")
         );
         Brand brand = brandRepo.findById(productDTO.getBrandId()).orElseThrow(
-                () -> new RuntimeException("Hãng sản xuất không tồn tại")
+            () -> new RuntimeException("Hãng sản xuất không tồn tại")
         );
 
         // Tạo sản phẩm
         Product product = new Product();
         try {
-            if(productDTO.getName() != null && productDTO.getName().length() > 0){
+            if (productDTO.getName() != null && productDTO.getName().length() > 0) {
                 product.setName(productDTO.getName());
             }
-            try{
+            try {
                 product.setPrice(productDTO.getPrice());
-            }catch (Exception e){
+            } catch (Exception e) {
                 throw new RuntimeException("Giá sản phẩm không hợp lệ");
             }
-            if(product.getDiscount() != null){
+            if (product.getDiscount() != null) {
                 product.setDiscount(productDTO.getDiscount());
             }
             product.setDiscount(productDTO.getDiscount());
             product.setDescription(productDTO.getDescription());
             product.setCategory(category);
-            if(product.getGender() != null){
+            if (product.getGender() != null) {
                 product.setGender(productDTO.getGender());
             }
             product.setMaterial(productDTO.getMaterial());
@@ -189,7 +193,7 @@ public class ProductServiceImpl implements ProductService {
         // Thêm dữ liệu thuộc tính
         for (Map.Entry<String, String> entry : productDTO.getAttributeValues().entrySet()) {
             Attribute attribute = attributeRepo.findByName(entry.getKey()).orElseThrow(
-                    () -> new RuntimeException("Thuộc tính không tồn tại")
+                () -> new RuntimeException("Thuộc tính không tồn tại")
             );
             switch (attribute.getType()) { // cây validate
                 case AttributeConstant.INTEGER: {
@@ -266,18 +270,18 @@ public class ProductServiceImpl implements ProductService {
         String file_name = "C:\\Users\\Admin\\Desktop\\project";
         Long id = Long.parseLong(request.getParameter("id"));
         Product product = productRepo.findById(id).orElseThrow(
-                () -> new RuntimeException("Sản phẩm không tồn tại")
+            () -> new RuntimeException("Sản phẩm không tồn tại")
         );
         // get OS name
         String osName = System.getProperty("os.name");
         Path filePath = null;
-        if(osName.toLowerCase().startsWith("windows")){
+        if (osName.toLowerCase().startsWith("windows")) {
             // windows
             filePath = Paths.get(file_name, file.getOriginalFilename());
-             //filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
-        }else{
+            //filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
+        } else {
             // linux
-             filePath = Paths.get("/var/www/html/image/product", file.getOriginalFilename());
+            filePath = Paths.get("/var/www/html/image/product", file.getOriginalFilename());
         }
         //Path filePath = Paths.get("C:\\Users\\Admin\\Desktop\\code\\datn_shoe_shop\\src\\server\\html\\image\\product", file.getOriginalFilename());
         product.setImageThumbnail(file.getOriginalFilename());
@@ -289,7 +293,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<Product> findByFilter(ProductSearchRequest model) {
         String keyword = model.getKeyword();
-        if(keyword == ""){
+        if (keyword == "") {
             keyword = null;
         }
         List<Long> brandIdList = model.getBrandIdList();
@@ -306,14 +310,14 @@ public class ProductServiceImpl implements ProductService {
             model.setSize(30);
         }
         Pageable pageable = PageRequest.of(model.getPage(), model.getSize());
-        Page<Product> productPage = this.productRepo.findByFilter(keyword, brandIdList, categoryIdList,attributeIdList, colorIdList, materialList, modelList, sizeIdList,model.getGender(), pageable);
+        Page<Product> productPage = this.productRepo.findByFilter(keyword, brandIdList, categoryIdList, attributeIdList, colorIdList, materialList, modelList, sizeIdList, model.getGender(), pageable);
         return productPage;
     }
 
     @Override
     public Page<Product> findByFilterLike(ProductSearchRequest model) {
         String keyword = model.getKeyword();
-        if(keyword == ""){
+        if (keyword == "") {
             keyword = null;
         }
         List<Long> brandIdList = model.getBrandIdList();
@@ -330,14 +334,14 @@ public class ProductServiceImpl implements ProductService {
             model.setSize(30);
         }
         Pageable pageable = PageRequest.of(model.getPage(), model.getSize());
-        Page<Product> productPage = this.productRepo.findByFilterLike(keyword, brandIdList, categoryIdList,attributeIdList, colorIdList, materialList, modelList, sizeIdList, pageable);
+        Page<Product> productPage = this.productRepo.findByFilterLike(keyword, brandIdList, categoryIdList, attributeIdList, colorIdList, materialList, modelList, sizeIdList, pageable);
         return productPage;
     }
 
     @Override
     public ProductResponse getProductById(Long id) {
         Product product = productRepo.findById(id).orElseThrow(
-                () -> new RuntimeException("Sản phẩm không tồn tại")
+            () -> new RuntimeException("Sản phẩm không tồn tại")
         );
         ProductResponse productResponse = new ProductResponse();
         productResponse.setId(product.getId());
@@ -360,8 +364,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> findTop10ByOrderByIdDesc() {
         List<Product> productList = productRepo.findTop10ByOrderByIdDesc();
-        if(productList.size() > 10){
-            productList = productList.subList(0,10);
+        if (productList.size() > 10) {
+            productList = productList.subList(0, 10);
         }
         return productList;
     }
@@ -388,9 +392,9 @@ public class ProductServiceImpl implements ProductService {
                 // get OS name
                 String osName = System.getProperty("os.name");
                 Path filePath;
-                if(osName.toLowerCase().startsWith("windows")){
+                if (osName.toLowerCase().startsWith("windows")) {
                     filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
-                }else{
+                } else {
                     filePath = Paths.get("/var/www/html/image/product", file.getOriginalFilename());
                 }
                 //Path filePath = Paths.get("C:\\Users\\Admin\\Desktop\\code\\datn_shoe_shop\\src\\server\\html\\image\\product", file.getOriginalFilename());
@@ -402,9 +406,120 @@ public class ProductServiceImpl implements ProductService {
                 productImageRepo.save(productImage);
                 Files.write(filePath, file.getBytes());
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public ProductDTO getDetail(Long id) {
+        ProductDTO productDTO = new ProductDTO();
+        Product product = productRepo.findById(id).orElseThrow(
+            () -> new RuntimeException("Sản phẩm không tồn tại")
+        );
+        productDTO.setId(product.getId());
+        productDTO.setName(product.getName());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setDiscount(product.getDiscount());
+        productDTO.setBrandId(product.getBrand().getId());
+        productDTO.setCategoryId(product.getCategory().getId());
+        productDTO.setMaterial(product.getMaterial());
+        productDTO.setModel(product.getModel());
+        productDTO.setGender(product.getGender());
+        productDTO.setImageThumbnail(product.getImageThumbnail());
+        productDTO.setCreatedDate(product.getCreatedDate());
+        productDTO.setSizeList(product.getProductDetails().stream().map(productDetail -> {
+            SizeDTO sizeDTO = new SizeDTO();
+            sizeDTO.setSize(productDetail.getSize().getSize());
+            sizeDTO.setQuantity(productDetail.getQuantity());
+            sizeDTO.setColor(productDetail.getColor().getName());
+            return sizeDTO;
+        }).collect(Collectors.toList()));
+        Map<String, String> attributeValues = new HashMap<>();
+        for (AttributeData attributeData : product.getAttributeData()) {
+            attributeValues.put(attributeData.getAttribute().getName(), attributeData.getValue());
+        }
+        // sort attribute by name
+        Map<String, String> sortedAttributeValues = new HashMap<>();
+        attributeValues.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .forEachOrdered(x -> sortedAttributeValues.put(x.getKey(), x.getValue()));
+        productDTO.setAttributeValues(sortedAttributeValues);
+        productDTO.setProductImageList(product.getProductImageList());
+        return productDTO;
+    }
+
+    @Override
+    @Transactional(rollbackOn = RuntimeException.class)
+    public ProductDTO updateDetail(Long id, ProductDTO productDTO) {
+        Product existingProduct = productRepo.findById(id).orElseThrow(
+            () -> new RuntimeException("Sản phẩm không tồn tại")
+        );
+
+        // Cập nhật thông tin chung của sản phẩm
+        existingProduct.setName(productDTO.getName());
+        existingProduct.setPrice(productDTO.getPrice());
+        existingProduct.setDiscount(productDTO.getDiscount());
+        existingProduct.setDescription(productDTO.getDescription());
+        existingProduct.setCategory(categoryRepo.findById(productDTO.getCategoryId()).orElseThrow(
+            () -> new RuntimeException("Danh mục không tồn tại")
+        ));
+        existingProduct.setBrand(brandRepo.findById(productDTO.getBrandId()).orElseThrow(
+            () -> new RuntimeException("Hãng sản xuất không tồn tại")
+        ));
+        existingProduct.setMaterial(productDTO.getMaterial());
+        existingProduct.setModel(productDTO.getModel());
+        existingProduct.setGender(productDTO.getGender());
+        existingProduct.setImageThumbnail(productDTO.getImageThumbnail());
+        existingProduct.setCreatedDate(productDTO.getCreatedDate());
+        updateSizeInformation(existingProduct, productDTO.getSizeList());
+        updateAttributeInformation(existingProduct, productDTO.getAttributeValues());
+        entityManager.persist(existingProduct);
+        Map<String, Object> response = new HashMap<>();
+        response.put("product", existingProduct);
+        response.put("message", "Cập nhật sản phẩm thành công");
+        response.put("status", HttpStatus.OK.value());
+        return productDTO;
+    }
+
+    private void updateSizeInformation(Product product, List<SizeDTO> newSizeList) {
+        // Xóa thông tin kích thước cũ
+        String deleteQuery = "DELETE FROM ProductDetail pd WHERE pd.product.id = :productId";
+        entityManager.createQuery(deleteQuery)
+            .setParameter("productId", product.getId())
+            .executeUpdate();
+
+        // Thêm thông tin kích thước mới
+        for (SizeDTO sizeDTO : newSizeList) {
+            ProductDetail productDetail = new ProductDetail();
+            productDetail.setProduct(product);
+            productDetail.setSize(sizeRepo.findBySize(sizeDTO.getSize()));
+            productDetail.setColor(colorRepo.findByName(sizeDTO.getColor()));
+            productDetail.setQuantity(sizeDTO.getQuantity());
+            productDetail.setStatus(ProductDetailConstant.EFFECT);;
+            product.getProductDetails().add(productDetail);
+        }
+    }
+
+    // Hàm cập nhật thông tin thuộc tính của sản phẩm
+    private void updateAttributeInformation(Product product, Map<String, String> attributeValues) {
+        // Xóa thông tin thuộc tính cũ
+        String deleteQuery = "DELETE FROM AttributeData ad WHERE ad.product.id = :productId";
+        entityManager.createQuery(deleteQuery)
+            .setParameter("productId", product.getId())
+            .executeUpdate();
+        // Thêm thông tin thuộc tính mới
+        for (Map.Entry<String, String> entry : attributeValues.entrySet()) {
+            Attribute attribute = attributeRepo.findByName(entry.getKey()).orElseThrow(
+                () -> new RuntimeException("Thuộc tính không tồn tại")
+            );
+            AttributeData attributeData = new AttributeData();
+            attributeData.setAttribute(attribute);
+            attributeData.setProduct(product);
+            attributeData.setValue(entry.getValue());
+            attributeData.setType(attribute.getType());
+            attributeDataRepo.save(attributeData);
         }
     }
 }

@@ -18,7 +18,7 @@ public class ProductDetail implements Serializable {
     @Column(name = "product_detail_id")
     private Long id;
 
-    @ManyToOne(targetEntity = Size.class)
+    @ManyToOne(targetEntity = Size.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "size_id")
     private Size size;
 
@@ -26,7 +26,7 @@ public class ProductDetail implements Serializable {
     @JoinColumn(name = "color_id")
     private Color color;
 
-    @ManyToOne(targetEntity = Product.class, cascade = CascadeType.ALL)
+    @ManyToOne(targetEntity = Product.class, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "product_id")
     private Product product;
     private Integer quantity;
