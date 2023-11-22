@@ -30,6 +30,11 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
+    @GetMapping("/getDetail/{id}")
+    public ProductDTO getDetail(@PathVariable Long id) {
+        return productService.getDetail(id);
+    }
+
     @DeleteMapping("/delete/{id}")
     public void deleteProductById(@PathVariable Long id) {
         productService.doDeleteById(id);
@@ -39,6 +44,12 @@ public class ProductController {
     public Product updateProductById(@PathVariable Long id, @RequestBody Product product) {
         return productService.doUpdateById(product, id);
     }
+
+    @PutMapping("/updateDetail/{id}")
+    public Product updateProductById(@PathVariable Long id, @RequestBody ProductDTO productDTO) {
+        return productService.updateDetail(id, productDTO);
+    }
+
 
     @GetMapping("/page/{page}/{size}")
     public Page<Product> getAllProduct(@PathVariable int page, @PathVariable int size) {
@@ -85,7 +96,7 @@ public class ProductController {
         return productService.findByName(name);
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    //@ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
         Map<String, Object> data = new HashMap<>();
         data.put("message", ex.getMessage());

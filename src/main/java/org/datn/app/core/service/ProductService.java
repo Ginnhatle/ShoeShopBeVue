@@ -33,4 +33,8 @@ public interface ProductService extends ServiceCore<Product, Long> {
     List<Product> findByName(String name);
 
     void addMultiImage(MultipartFile[] files, HttpServletRequest request) throws IOException;
+
+    ProductDTO getDetail(Long id);
+
+    ProductDTO updateDetail(Long id, ProductDTO productDTO);
 }
