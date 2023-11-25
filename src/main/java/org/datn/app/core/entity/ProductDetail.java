@@ -2,6 +2,8 @@ package org.datn.app.core.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,9 +12,11 @@ import java.util.List;
 
 @Entity
 @Table(name = "product_details")
-@Data
+@Setter
+@Getter
 public class ProductDetail implements Serializable {
     private static final Long serialVersionUID = 1L;
+    private static boolean alreadyToString = false;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_detail_id")
@@ -26,7 +30,7 @@ public class ProductDetail implements Serializable {
     @JoinColumn(name = "color_id")
     private Color color;
 
-    @ManyToOne(targetEntity = Product.class, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToOne(targetEntity = Product.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id")
     private Product product;
     private Integer quantity;

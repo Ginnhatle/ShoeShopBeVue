@@ -19,7 +19,8 @@ public class OrderConstant {
     public static final Integer RETURNED = 4;   // trả hàng
     public static final Integer EXCHANGED = 5;  // đổi hàng
     public static final Integer RECEIVED = 6;   // đã nhận hàng
-    public static final Integer DELIVERING = 7;
+    public static final Integer DELIVERING = 7; // đang giao hàng
+    public static final Integer PAYMENT_AT_STORE = 8; // thanh toán tại cửa hàng
 
 
     public static final Long DELIVERY_FEE = 30000L; // phí vận chuyển

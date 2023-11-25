@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.datn.app.constant.OrderConstant;
 import org.datn.app.constant.PaymentMethodConstant;
+import org.datn.app.core.dto.OrderAtStoreRequest;
 import org.datn.app.core.dto.OrderRequest;
 import org.datn.app.core.dto.OrderStatisticalDto;
 import org.datn.app.core.entity.*;
@@ -164,6 +165,32 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderList.stream().findFirst().get();
     }
+
+    @Override
+    public ResponseEntity<?> paymentAtStore(OrderAtStoreRequest model) {
+        Order order = new Order();
+        order.setName(model.getName());
+        order.setPhoneNumber(model.getPhoneNumber());
+        order.setCode(GenerateString.generateString(10));
+        order.setPaymentMethod(PaymentMethodConstant.PAYMENT_AT_STORE);
+        order.setStatus(OrderConstant.PAYMENT_AT_STORE);
+        order.setAddress(null);
+        final List<OrderDetail> orderDetailList = new ArrayList<>();
+        for (ProductDetail productDetail : model.getProductDetailList()) {
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setProductDetail(productDetail);
+            orderDetail.setQuantity(productDetail.getQuantity());
+            orderDetail.setPrice(productDetail.getProduct().getPrice());
+            orderDetailList.add(orderDetailRepo.save(orderDetail));
+        }
+        order.setOrderDetails(orderDetailList);
+        orderRepo.save(order);
+        Map response = new HashMap();
+        response.put("message", "Mua hàng thành công");
+        response.put("status", HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
+     }
 
     @Override
     public Order findByCode(String code) {
