@@ -2,14 +2,16 @@ package org.datn.app.core.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
 @Table(name = "order_details")
-@Data
-
+@Setter
+@Getter
 public class OrderDetail implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
@@ -18,7 +20,7 @@ public class OrderDetail implements Serializable {
     private Long id;
     private Integer quantity;
     private Double price;
-    @ManyToOne( targetEntity = Order.class)
+    @ManyToOne( targetEntity = Order.class , cascade = CascadeType.ALL)
     @JoinColumn(name = "order_id")
     @JsonIgnore
     private Order order;
