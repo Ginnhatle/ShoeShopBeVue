@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.datn.app.constant.OrderConstant;
 import org.datn.app.constant.PaymentMethodConstant;
+import org.datn.app.core.dto.OrderAtStoreRequest;
 import org.datn.app.core.dto.OrderRequest;
 import org.datn.app.core.dto.OrderStatisticalDto;
 import org.datn.app.core.entity.*;
@@ -164,6 +165,51 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderList.stream().findFirst().get();
     }
+
+    @Override
+    public ResponseEntity<?> paymentAtStore(OrderRequest model) {
+        User user = userRepo.findById(model.getUserId()).orElse(null);
+        if(user == null) {
+            return null;
+        }
+        if (!user.getRole().equals("ROLE_ADMIN")) {
+            throw new RuntimeException("not permit");
+        }
+        if(model.getCartIdList() == null || model.getCartIdList().isEmpty()) {
+            throw new RuntimeException();
+        }
+        Order order = new Order();
+        order.setName(model.getName());
+        order.setPhoneNumber(model.getPhoneNumber());
+        order.setCode(GenerateString.generateString(10));
+        order.setPaymentMethod(PaymentMethodConstant.PAYMENT_AT_STORE);
+        order.setStatus(OrderConstant.PAYMENT_AT_STORE);
+        order.setName(model.getName());
+        order.setUser(user);
+        order.setNote(OrderConstant.ORDER_NEW);
+        order.setAddress(model.getAddress());
+        final List<OrderDetail> orderDetailList = new ArrayList<>();
+        List<Cart> cartList = cartRepo.findAllById(model.getCartIdList());
+        for (Cart cart : cartList) {
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setProductDetail(cart.getProductDetail());
+            orderDetail.setQuantity(cart.getQuantity());
+            orderDetail.setPrice(cart.getPrice());
+            orderDetailList.add(orderDetailRepo.save(orderDetail));
+        }
+        order.setOrderDetails(orderDetailList);
+        orderRepo.save(order);
+        orderDetailList.forEach(orderDetail -> {
+            ProductDetail productDetail = orderDetail.getProductDetail();
+            productDetail.setQuantity(productDetail.getQuantity() - orderDetail.getQuantity());
+            productDetailRepo.save(productDetail);
+        });
+        Map response = new HashMap();
+        response.put("message", "Mua hàng thành công");
+        response.put("status", HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
+     }
 
     @Override
     public Order findByCode(String code) {

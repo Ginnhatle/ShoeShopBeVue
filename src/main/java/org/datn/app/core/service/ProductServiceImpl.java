@@ -267,7 +267,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseEntity<?> addImage(MultipartFile file, HttpServletRequest request) throws IOException {
-        String file_name = "C:\\Users\\Admin\\Desktop\\project";
+        String path_ = "D:\\nginx-1.25.2\\nginx-1.25.2\\html\\image";
         Long id = Long.parseLong(request.getParameter("id"));
         Product product = productRepo.findById(id).orElseThrow(
             () -> new RuntimeException("Sản phẩm không tồn tại")
@@ -277,7 +277,7 @@ public class ProductServiceImpl implements ProductService {
         Path filePath = null;
         if (osName.toLowerCase().startsWith("windows")) {
             // windows
-            filePath = Paths.get(file_name, file.getOriginalFilename());
+            filePath = Paths.get(path_, file.getOriginalFilename());
             //filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
         } else {
             // linux
@@ -380,6 +380,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void addMultiImage(MultipartFile[] files, HttpServletRequest request) throws IOException {
+        String path_ = "D:\\nginx-1.25.2\\nginx-1.25.2\\html\\image";
         try {
             Long id = Long.parseLong(request.getParameter("id"));
             if (files.length == 0) {
@@ -393,7 +394,8 @@ public class ProductServiceImpl implements ProductService {
                 String osName = System.getProperty("os.name");
                 Path filePath;
                 if (osName.toLowerCase().startsWith("windows")) {
-                    filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
+                    filePath = Paths.get(path_, file.getOriginalFilename());
+                    // filePath = Paths.get("C:\\GitHub\\ShoeShop\\server\\nginx-1.25.3\\html\\image\\product", file.getOriginalFilename());
                 } else {
                     filePath = Paths.get("/var/www/html/image/product", file.getOriginalFilename());
                 }
@@ -431,7 +433,7 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setCreatedDate(product.getCreatedDate());
         productDTO.setSizeList(product.getProductDetails().stream().map(productDetail -> {
             SizeDTO sizeDTO = new SizeDTO();
-            sizeDTO.setSize(productDetail.getSize().getSize());
+            sizeDTO.setSize(productDetail.getSize().getSize() + "");
             sizeDTO.setQuantity(productDetail.getQuantity());
             sizeDTO.setColor(productDetail.getColor().getName());
             return sizeDTO;
@@ -475,7 +477,7 @@ public class ProductServiceImpl implements ProductService {
         existingProduct.setCreatedDate(productDTO.getCreatedDate());
         updateSizeInformation(existingProduct, productDTO.getSizeList());
         updateAttributeInformation(existingProduct, productDTO.getAttributeValues());
-        entityManager.persist(existingProduct);
+        productRepo.save(existingProduct);
         Map<String, Object> response = new HashMap<>();
         response.put("product", existingProduct);
         response.put("message", "Cập nhật sản phẩm thành công");
@@ -484,31 +486,70 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void updateSizeInformation(Product product, List<SizeDTO> newSizeList) {
-        // Xóa thông tin kích thước cũ
-        String deleteQuery = "DELETE FROM ProductDetail pd WHERE pd.product.id = :productId";
-        entityManager.createQuery(deleteQuery)
-            .setParameter("productId", product.getId())
-            .executeUpdate();
+        // Duyệt qua danh sách ProductDetail hiện tại
+        for (ProductDetail productDetail : product.getProductDetails()) {
+            // Lấy thông tin kích thước từ newSizeList tương ứng
+            SizeDTO newSize = newSizeList.stream()
+                .filter(sizeDTO -> sizeDTO.getSize().equals(productDetail.getSize().getSize()))
+                .findFirst()
+                .orElse(null);
 
-        // Thêm thông tin kích thước mới
-        for (SizeDTO sizeDTO : newSizeList) {
-            ProductDetail productDetail = new ProductDetail();
-            productDetail.setProduct(product);
-            productDetail.setSize(sizeRepo.findBySize(sizeDTO.getSize()));
-            productDetail.setColor(colorRepo.findByName(sizeDTO.getColor()));
-            productDetail.setQuantity(sizeDTO.getQuantity());
-            productDetail.setStatus(ProductDetailConstant.EFFECT);;
-            product.getProductDetails().add(productDetail);
+            // Nếu tìm thấy thông tin kích thước mới, cập nhật thông tin kích thước trong ProductDetail
+            if (newSize != null) {
+                productDetail.setColor(colorRepo.findByName(newSize.getColor()));
+                productDetail.setQuantity(newSize.getQuantity());
+                // Các cập nhật khác nếu cần
+            }
+        }
+
+        // Duyệt qua danh sách newSizeList
+        for (SizeDTO newSize : newSizeList) {
+            Size size = sizeRepo.findBySize(newSize.getSize());
+            if (size == null) {
+                size = new Size();
+                size.setSize(newSize.getSize());
+                sizeRepo.save(size);
+            }
+
+            Color color = colorRepo.findByName(newSize.getColor());
+            if (color == null) {
+                color = new Color();
+                color.setName(newSize.getColor());
+                colorRepo.save(color);
+            }
+
+            // Kiểm tra xem có ProductDetail tương ứng đã tồn tại không
+            boolean productDetailExists = product.getProductDetails().stream()
+                .anyMatch(productDetail -> newSize.getSize().equals(productDetail.getSize().getSize()));
+
+            // Nếu không tìm thấy, thêm mới ProductDetail
+            if (!productDetailExists) {
+                if (productDetailRepo.findByProductIdAndSizeId(product.getId(), size.getId()).isEmpty() && productDetailRepo.findByProductIdAndColorId(product.getId(), color.getId()).isEmpty()) {
+                    ProductDetail productDetail = new ProductDetail();
+                    productDetail.setProduct(product);
+                    productDetail.setSize(size);
+                    productDetail.setColor(color);
+                    productDetail.setQuantity(newSize.getQuantity());
+                    productDetail.setStatus(ProductDetailConstant.EFFECT);
+                    productDetailRepo.save(productDetail);
+                } else {
+                    throw new RuntimeException("Kích thước hoặc màu sắc đã tồn tại");
+                }
+            } else {
+                // Nếu tìm thấy, cập nhật thông tin kích thước trong ProductDetail
+                ProductDetail productDetail = productDetailRepo.findByProductIdAndSizeId(product.getId(), size.getId()).get(0);
+                productDetail.setColor(color);
+                productDetail.setQuantity(newSize.getQuantity());
+                productDetail.setStatus(ProductDetailConstant.EFFECT);
+                productDetailRepo.save(productDetail);
+            }
         }
     }
 
     // Hàm cập nhật thông tin thuộc tính của sản phẩm
     private void updateAttributeInformation(Product product, Map<String, String> attributeValues) {
         // Xóa thông tin thuộc tính cũ
-        String deleteQuery = "DELETE FROM AttributeData ad WHERE ad.product.id = :productId";
-        entityManager.createQuery(deleteQuery)
-            .setParameter("productId", product.getId())
-            .executeUpdate();
+        product.getProductDetails().clear();
         // Thêm thông tin thuộc tính mới
         for (Map.Entry<String, String> entry : attributeValues.entrySet()) {
             Attribute attribute = attributeRepo.findByName(entry.getKey()).orElseThrow(

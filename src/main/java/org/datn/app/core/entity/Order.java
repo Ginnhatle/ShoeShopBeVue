@@ -57,7 +57,6 @@ public class Order implements Serializable {
     public void prePersist() {
         this.created = new Date();
         this.modified = new Date();
-        this.status = OrderConstant.PENDING;
     }
 
     @PreUpdate

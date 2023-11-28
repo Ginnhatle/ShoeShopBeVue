@@ -1,6 +1,7 @@
 package org.datn.app.endpoint;
 
 import lombok.RequiredArgsConstructor;
+import org.datn.app.core.dto.OrderAtStoreRequest;
 import org.datn.app.core.dto.OrderRequest;
 import org.datn.app.core.dto.OrderStatisticalDto;
 import org.datn.app.core.entity.Order;
@@ -74,6 +75,11 @@ public class OrderController {
     @PostMapping("/findFirstByUserId/{userId}")
     public Order findFirstByUserId(@PathVariable Long userId) {
         return orderService.findFirstByUserId(userId);
+    }
+
+    @PostMapping("/paymentAtStore")
+    public ResponseEntity<?> paymentAtStore(@RequestBody OrderRequest model) {
+        return orderService.paymentAtStore(model);
     }
 
     @ExceptionHandler(RuntimeException.class)

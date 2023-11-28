@@ -96,7 +96,7 @@ public class ProductController {
         return productService.findByName(name);
     }
 
-    //@ExceptionHandler(RuntimeException.class)
+   // @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
         Map<String, Object> data = new HashMap<>();
         data.put("message", ex.getMessage());

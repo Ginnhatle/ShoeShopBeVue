@@ -5,4 +5,6 @@ public class PaymentMethodConstant {
     public static final String COD = "Tiền mặt";
     // chuyển khoản ngân hàng
     public static final String BANK_TRANSFER = "Thẻ ATM/Internet Banking";
+
+    public static final String PAYMENT_AT_STORE = "Thanh toán tại cửa hàng";
 }
