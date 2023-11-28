@@ -75,14 +75,14 @@ public class CartServiceImpl implements CartService {
                 if ((item.getCategory() != null && item.getProduct() == null)) {
                     for (Cart cart : cartList) {
                         if (cart.getProductDetail().getProduct().getCategory().getId().equals(item.getCategory().getId())) {
-                            price +=  cartList.stream().mapToInt(cart1 -> cart1.getPrice().intValue()).sum() - item.getVoucher().getDiscountValue();
+                            price +=  cartList.stream().mapToInt(cart1 -> cart1.getPrice().intValue()).sum() - item.getVoucher().getDiscountValue() * cart.getQuantity();
                         }
                     }
                 } else if (item.getCategory() == null && item.getProduct() != null) {
                     for (Cart cart : cartList) {
                         if (cart.getProductDetail().getProduct().getId().equals(item.getProduct().getId())) {
                             // price discount
-                            price += cartList.stream().mapToInt(cart1 -> cart1.getPrice().intValue()).sum() - item.getVoucher().getDiscountValue();
+                            price += cartList.stream().mapToInt(cart1 -> cart1.getPrice().intValue()).sum() - item.getVoucher().getDiscountValue() * cart.getQuantity();
                         }
                     }
                 }
@@ -96,7 +96,7 @@ public class CartServiceImpl implements CartService {
             if(voucher != null)
                 price +=  cartList.stream().mapToInt(cart -> cart.getPrice().intValue()).sum() - voucher.getDiscountValue();
         }
-        price +=  cartList.stream().mapToInt(cart -> cart.getPrice().intValue()).sum();
+        price +=  cartList.stream().mapToInt(cart -> cart.getPrice().intValue() * cart.getQuantity()).sum();
         return price;
     }
 

@@ -43,5 +43,5 @@ public interface OrderService extends ServiceCore<Order, Long> {
 
     Order findFirstByUserId(Long userId);
 
-    ResponseEntity<?> paymentAtStore(OrderAtStoreRequest model);
+    ResponseEntity<?> paymentAtStore(OrderRequest model);
 }
