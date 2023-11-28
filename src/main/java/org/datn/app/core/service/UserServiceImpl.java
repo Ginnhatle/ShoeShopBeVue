@@ -47,6 +47,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User doInsert(User user) {
         user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        if (user.getUsername().equals("admin"))
+            user.setRole("ROLE_ADMIN");
+        else
+            user.setRole("ROLE_USER");
         return userRepo.save(user);
     }
 
